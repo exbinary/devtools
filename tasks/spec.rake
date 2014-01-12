@@ -3,22 +3,30 @@
 begin
   require 'rspec/core/rake_task'
 
+  # Remove existing same-named tasks
+  %w[spec spec:unit spec:integration].each do |task|
+    klass = Rake::Task
+    klass[task].clear if klass.task_defined?(task)
+  end
+
   desc 'Run all specs'
-  task spec: %w[ spec:unit spec:integration ]
+  RSpec::Core::RakeTask.new(:spec) do |task|
+    task.pattern = 'spec/{unit,integration}/{,/*/**}/*_spec.rb'
+  end
 
   namespace :spec do
     desc 'Run unit specs'
-    RSpec::Core::RakeTask.new(:unit) do |unit|
-      unit.pattern = 'spec/unit/**/*_spec.rb'
+    RSpec::Core::RakeTask.new(:unit) do |task|
+      task.pattern = 'spec/unit/{,/*/**}/*_spec.rb'
     end
 
     desc 'Run integration specs'
-    RSpec::Core::RakeTask.new(:integration) do |integration|
-      integration.pattern = 'spec/integration/**/*_spec.rb'
+    RSpec::Core::RakeTask.new(:integration) do |task|
+      task.pattern = 'spec/integration/{,/*/**}/*_spec.rb'
     end
   end
 rescue LoadError
-  %w[ spec spec:unit spec:integration ].each do |name|
+  %w[spec spec:unit spec:integration].each do |name|
     task name do
       $stderr.puts "In order to run #{name}, do: gem install rspec"
     end
